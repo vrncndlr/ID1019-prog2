@@ -16,15 +16,21 @@ defmodule Derivative do
 
 #--------TESTS--------
   def test() do
+    #2x
     #e = {:mul, {:num, 2}, {:var, :x} }
-    #e = {:add, {:add, {:mul, {:mul, {:num, 2}, {:var, :x}}, {:mul, {:num, 2}, {:var, :x}}}, {:mul, {:num, 3}, {:var, :x} }}, {:num, 5}}
+    #2x*3x
+    e = {:mul, {:mul, {:num, 2}, {:var, :x}}, {:mul, {:num, 3}, {:var, :x}}}
+    #2x^2+3x+5
+    #e = {:add, {:add, {:mul, {:num, 2}, {:exp, {:var, :x}, {:num, 2}}}, {:mul, {:num, 3}, {:var, :x}}}, {:num, 5}}
     #e = {:exp, {:var, :x}, {:num, 3}}
     #e = {:div, {:num, 1}, {:var, :x}}
     #e = {:div, {:num, 1}, {:exp, {:var, :x}, {:num, 4}}}
     #e = {:ln, {:var, :x}}
     #e = {:sqrt, {:var, :x}}
     #e = {:sin, {:var, :x}}
-    e = {:cos, {:var, :x}}
+    #e = {:cos, {:var, :x}}
+    #2x+3x
+    #e = {:add, {:mul, {:num, 2}, {:var, :x}}, {:mul, {:num, 3}, {:var, :x}}}
     d = deriv(e, :x)
     IO.write("f = #{simpl(e)}\n")
     IO.write("f' = #{simpl(d)}\n")
@@ -49,28 +55,58 @@ defmodule Derivative do
     {:sub, deriv(e1, v), deriv(e2, v)}
   end
   def deriv({:mul, e1, e2}, v) do
-    {:add, {:mul, deriv(e1, v), e2}, {:mul, e1, deriv(e2, v)}}
+    {:add,
+      {:mul, e1, deriv(e2, v)},
+      {:mul, deriv(e1, v), e2}}
   end
   #more complex expressions
   # x^n
   def deriv({:exp, e, {:num, n}}, v) do
-    {:mul, {:mul, {:exp, e, {:num, n-1}}, {:num, n}}, deriv(e, v)}
+    {:mul,
+      {:mul,
+        {:exp, e, {:num, n-1}},
+        {:num, n}},
+      deriv(e, v)}
   end
   # 1/x^n
   def deriv({:div, a, {:exp, x, {:num, n}}}, v) do
-    {:mul, deriv(x, v), {:mul, {:num, -n}, {:div, a, {:exp, x, {:num, n+1}}}}}
+    {:mul,
+      deriv(x, v),
+      {:mul,
+        {:num, -n},
+        {:div, a, {:exp, x, {:num, n+1}}}}}
   end
   # 1/x
   def deriv({:div, a, b}, v) do
-    {:div, {:sub, {:mul, deriv(a, v), b}, {:mul, a, deriv(b, v)}}, {:exp, b, {:num, 2}}}
+    {:div,
+      {:sub,
+        {:mul, deriv(a, v), b}, {:mul, a, deriv(b, v)}},
+      {:exp, b, {:num, 2}}}
   end
   # ln x
-  def deriv({:ln, x}, v) do {:mul, {:div, {:num, 1}, x}, deriv(x, v)} end
+  def deriv({:ln, x}, v) do
+    {:mul,
+      {:div, {:num, 1}, x},
+      deriv(x, v)} end
   # sqrt[x]
-  def deriv({:sqrt, x}, v) do {:mul, {:div, {:num, 1}, {:mul, {:num, 2}, {:sqrt, x}}}, deriv(x, v)} end
+  def deriv({:sqrt, x}, v) do
+    {:mul,
+      {:div,
+        {:num, 1},
+        {:mul, {:num, 2}, {:sqrt, x}}},
+      deriv(x, v)}
+  end
   # sin x
-  def deriv({:sin, x}, v) do {:mul, {:cos, x}, deriv(x, v)} end
-  def deriv({:cos, x}, v) do {:mul, {:num, -1}, {:mul, deriv(x, v), {:sin, x}}} end
+  def deriv({:sin, x}, v) do
+    {:mul,
+      {:cos, x},
+      deriv(x, v)}
+  end
+  def deriv({:cos, x}, v) do
+    {:mul,
+      {:num, -1},
+      {:mul, deriv(x, v), {:sin, x}}}
+  end
 
   #step 3. simplify the output expression
   def simpl({:num, n}) do "#{n}" end
@@ -129,6 +165,7 @@ defmodule Derivative do
   def clean_mul(_, {:num, 0} ) do {:num, 0} end
   def clean_mul({:num, 1}, e) do e end
   def clean_mul(e, {:num, 1} ) do e end
+  def clean_mul({:num, e}, {:num, e}) do {:num, e*e} end
   def clean_mul({:num, e1}, {:num, e2}) do {:num, e1*e2} end
   def clean_mul(e1, e2) do {:mul, e1, e2} end
 
@@ -137,13 +174,19 @@ defmodule Derivative do
   def clean_exp({:num, e1}, {:num, e2}) do {:num, :math.pow(e1, e2)} end
   def clean_exp(e1, e2) do {:exp, e1, e2} end
 
+  def clean_div(_, {:num, 0}) do "undefined" end
   def clean_div(e1, e2) do {:div, e1, e2} end
 
+  def clean_ln({:num, n}) do {:num, :math.log(n)} end
   def clean_ln(e) do {:ln, e} end
 
+  def clean_sqrt({:num, n}) do {:num, :math.sqrt(n)} end
   def clean_sqrt(e) do {:sqrt, e} end
 
+  def clean_sin({:num, n}) do {:num, :math.sin(n)} end
   def clean_sin(e) do {:sin, e} end
+
+  def clean_cos({:num, n}) do {:num, :math.cos(n)} end
   def clean_cos(e) do {:cos, e} end
 
 end
