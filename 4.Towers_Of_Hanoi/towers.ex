@@ -9,12 +9,12 @@ defmodule Towers do
   end
   def hanoi(3, :a, :b, :c) do
     [ {:move, :a, :c},
-    {:move, :a, :b},
-    {:move, :c, :b},
-    {:move, :a, :c},
-    {:move, :b, :a},
-    {:move, :b, :c},
-    {:move, :a, :c} ]
+      {:move, :a, :b},
+      {:move, :c, :b},
+      {:move, :a, :c},
+      {:move, :b, :a},
+      {:move, :b, :c},
+      {:move, :a, :c} ]
   end
   #recursive
   #Three sequences:
